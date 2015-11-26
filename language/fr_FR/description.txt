@@ -1,0 +1,1 @@
+Partager une photo privée à un visiteur externe, avec une identification temporaire par clef

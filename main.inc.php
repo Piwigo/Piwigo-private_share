@@ -1,0 +1,378 @@
+<?php
+/*
+Plugin Name: Private Share
+Version: auto
+Description: Share a private photo, with a key instead of authentication
+Plugin URI: http://piwigo.org/ext/extension_view.php?eid=
+Author: plg
+Author URI: http://le-gall.net/pierrick
+*/
+
+global $conf, $prefixeTable;
+
+if (!defined('PHPWG_ROOT_PATH')) die('Hacking attempt!');
+
+if (mobile_theme()) return;
+
+define('PSHARE_PATH' , PHPWG_PLUGINS_PATH . basename(dirname(__FILE__)) . '/');
+define('PSHARE_KEYS_TABLE', $prefixeTable.'pshare_keys');
+define('PSHARE_LOG_TABLE', $prefixeTable.'pshare_log');
+define('PSHARE_KEY_PATTERN', '/^[a-zA-Z0-9]{30}$/');
+define('PSHARE_ADMIN_BASE_URL', get_root_url().'admin.php?page=plugin-private_share');
+
+add_event_handler('init', 'pshare_init');
+function pshare_init()
+{
+  global $conf;
+}
+
+add_event_handler('get_admin_plugin_menu_links', 'pshare_admin_menu');
+function pshare_admin_menu($menu)
+{
+  global $page;
+
+  array_push(
+    $menu,
+    array(
+      'NAME' => 'Private Share',
+      'URL'  => get_root_url().'admin.php?page=plugin-private_share'
+      )
+    );
+
+  return $menu;
+}
+
+// +-----------------------------------------------------------------------+
+// | SECTION INIT
+// +-----------------------------------------------------------------------+
+
+add_event_handler('loc_end_section_init', 'pshare_section_init');
+
+/* define page section from url */
+function pshare_section_init()
+{
+  global $tokens, $page, $conf, $template;
+
+  if ($tokens[0] == 'pshare')
+  {
+    $page['section'] = 'pshare';
+    $page['title'] = l10n('Shared Picture');
+
+    if (!isset($tokens[1]))
+    {
+      die("missing key");
+    }
+
+    if (!preg_match(PSHARE_KEY_PATTERN, $tokens[1]))
+    {
+      die("invalid key");
+    }
+
+    $page['pshare_key'] = $tokens[1];
+    
+    $query = '
+SELECT
+    *,
+    NOW() AS dbnow
+  FROM '.PSHARE_KEYS_TABLE.'
+  WHERE uuid = \''.$page['pshare_key'].'\'
+;';
+    $shares = query2array($query);
+    if (count($shares) == 0)
+    {
+      die('unknown key');
+    }
+
+    $share = $shares[0];
+
+    // is the key still valid?
+    if (strtotime($share['expire_on']) < strtotime($share['dbnow']))
+    {
+      die('expired key');
+    }
+
+    $query = '
+SELECT *
+  FROM '.IMAGES_TABLE.'
+  WHERE id = '.$share['image_id'].'
+;';
+    $rows = query2array($query);
+    $image = $rows[0];
+    $src_image = new SrcImage($image);
+
+    if (isset($tokens[2]) && 'download' == $tokens[2])
+    {
+      $file = $image['path'];
+      $gmt_mtime = gmdate('D, d M Y H:i:s', filemtime($file)).' GMT';
+
+      $http_headers = array(
+        'Content-Length: '.@filesize($file),
+        'Last-Modified: '.$gmt_mtime,
+        'Content-Type: '.mime_content_type($file),
+        'Content-Disposition: attachment; filename="'.$image['file'].'";',
+        'Content-Transfer-Encoding: binary',
+        );
+
+      foreach ($http_headers as $header) {
+        header($header);
+      }
+      
+      readfile($file);
+
+      pshare_log($share['pshare_key_id'], 'download');
+        
+      exit();
+    }
+
+    $template->set_filename('shared_picture', realpath(PSHARE_PATH.'template/shared_picture.tpl'));
+    
+    $template->assign(
+      array(
+        'SRC' => DerivativeImage::url(IMG_MEDIUM, $src_image),
+        'DOWNLOAD_URL' => duplicate_index_url().'/'.$page['pshare_key'].'/download',
+        )
+      );
+    
+    $template->parse('shared_picture');
+    $template->p();
+
+    pshare_log($share['pshare_key_id'], 'visit');
+    
+    exit();
+  }
+}
+
+add_event_handler('loc_end_picture', 'pshare_end_picture');
+function pshare_end_picture()
+{
+  global $conf, $template, $picture;
+  
+  $template->set_prefilter('picture', 'pshare_end_picture_prefilter');
+  $template->assign(
+    array(
+      'PSHARE_IMAGE_ID' => $picture['current']['id'],
+      )
+    );
+
+  $template->set_filename('pshare_picture', realpath(PSHARE_PATH.'template/picture.tpl'));
+  
+  $template->assign_var_from_handle('PSHARE_CONTENT', 'pshare_picture');
+}
+
+function pshare_end_picture_prefilter($content, &$smarty)
+{
+  $search = '<dl id="standard"';
+  
+  $replace = '{$PSHARE_CONTENT}'.$search;
+  
+  $content = str_replace($search, $replace, $content);
+  return $content;
+}
+
+add_event_handler('ws_add_methods', 'pshare_add_methods');
+function pshare_add_methods($arr)
+{
+  $service = &$arr[0];
+
+  $service->addMethod(
+    'pshare.share.create',
+    'ws_pshare_share_create',
+    array(
+      'image_id' => array('type'=>WS_TYPE_ID),
+      'email' => array(),
+      'expires_in' => array('type'=>WS_TYPE_INT|WS_TYPE_POSITIVE),
+      ),
+    'Create a new share'
+    );
+
+  $service->addMethod(
+    'pshare.share.expire',
+    'ws_pshare_share_expire',
+    array(
+      'id' => array('type'=>WS_TYPE_ID),
+      ),
+    'Expire a share now',
+    '',
+    array('admin_only'=>true)
+    );
+}
+
+function ws_pshare_share_create($params, &$service)
+{
+  global $conf, $user;
+
+  $query = '
+SELECT *
+  FROM '.IMAGES_TABLE.'
+  WHERE id = '.$params['image_id'].'
+;';
+  $images = query2array($query);
+
+  if (count($images) == 0)
+  {
+    return new PwgError(404, "image not found");
+  }
+
+  $image = $images[0];
+
+  // TODO check image is authorized to the user posting, maybe by using a token that make it sure the user was on the page of the photo
+  // TODO check the expires_in is in the defined list
+  // TODO check the email is valid
+
+  $query = '
+SELECT
+    NOW(),
+    ADDDATE(NOW(), INTERVAL '.$params['expires_in'].' DAY)
+;';
+  list($now, $expire) = pwg_db_fetch_row(pwg_query($query));
+
+  $key_uuid = pshare_get_key();
+
+  single_insert(
+    PSHARE_KEYS_TABLE,
+    array(
+      'uuid' => $key_uuid,
+      'user_id' => $user['id'],
+      'image_id' => $params['image_id'],
+      'sent_to' => $params['email'],
+      'created_on' => $now,
+      'duration' => $params['expires_in'],
+      'expire_on' => $expire,
+      )
+    );
+
+  $query = '
+SELECT *
+  FROM '.PSHARE_KEYS_TABLE.'
+  WHERE uuid = \''.$key_uuid.'\'
+;';
+  $shares = query2array($query);
+
+  if (count($shares) == 0)
+  {
+    return new PwgError(500, "share not created");
+  }
+
+  $share = $shares[0];
+
+  //
+  // Send the email
+  //
+  include_once(PHPWG_ROOT_PATH.'include/functions_mail.inc.php');
+
+  // force $conf['derivative_url_style'] to 2 (script) to make sure we
+  // will use i.php?/upload and not _data/i/upload because you don't
+  // know when the cache will be flushed
+  $previous_derivative_url_style = $conf['derivative_url_style'];
+  $conf['derivative_url_style'] = 2;
+
+  $thumb_url = DerivativeImage::thumb_url(
+    array(
+      'id' => $image['id'],
+      'path' => $image['path'],
+      )
+    );
+
+  // restore configuration setting
+  $conf['derivative_url_style'] = $previous_derivative_url_style;
+
+  $link = get_absolute_root_url().'index.php?/pshare/'.$share['uuid'];
+  
+  $content = '<p style="text-align:center">';
+  $content.= l10n('%s has shared a photo with you', $user['username']);
+  $content.= '<br><br><a href="'.$link.'"><img src="'.$thumb_url.'"></a>';
+  $content.= '<br><br><a href="'.$link.'">'.l10n('clic to view').'</a>';
+  $content.= '</p>';
+
+  $subject = l10n('Photo shared');
+
+  pwg_mail(
+    $params['email'],
+    array(
+      'subject' => '['. $conf['gallery_title'] .'] '. $subject,
+      'mail_title' => $conf['gallery_title'],
+      'mail_subtitle' => $subject,
+      'content' => $content,
+      'content_format' => 'text/html',
+      )
+    );
+}
+
+function ws_pshare_share_expire($params, &$service)
+{
+  global $conf, $user;
+
+  $query = '
+SELECT *
+  FROM '.PSHARE_KEYS_TABLE.'
+  WHERE pshare_key_id = '.$params['id'].'
+;';
+  $shares = query2array($query);
+
+  if (count($shares) == 0)
+  {
+    return new PwgError(404, "not found");
+  }
+
+  $share = $shares[0];
+
+  list($dbnow) = pwg_db_fetch_row(pwg_query('SELECT NOW()'));
+
+  single_update(
+    PSHARE_KEYS_TABLE,
+    array('expire_on' => $dbnow),
+    array('pshare_key_id' => $params['id'])
+    );
+
+  return true;
+}
+
+function pshare_get_key()
+{
+  $candidate = generate_key(30);
+
+  // in very rare cases, with Piwigo <2.8, generate_key may return some "="
+  // at the end
+  if (!preg_match(PSHARE_KEY_PATTERN, $candidate))
+  {
+    return pshare_get_key();
+  }
+
+  $query = '
+SELECT
+    COUNT(*)
+  FROM '.PSHARE_KEYS_TABLE.'
+  WHERE uuid = \''.$candidate.'\'
+;';
+  list($counter) = pwg_db_fetch_row(pwg_query($query));
+
+  if (0 == $counter)
+  {
+    return $candidate;
+  }
+  else
+  {
+    return pshare_get_key();
+  }
+
+}
+
+function pshare_log($key_id, $type='visit')
+{
+  global $user;
+  
+  list($dbnow) = pwg_db_fetch_row(pwg_query('SELECT NOW();'));
+
+  single_insert(
+    PSHARE_LOG_TABLE,
+    array(
+      'pshare_key_idx' => $key_id,
+      'occured_on' => $dbnow,
+      'type' => $type,
+      'ip_address' => $_SERVER['REMOTE_ADDR'],
+      'user_id' => $user['id'],
+      )
+    );
+}
+
+?>
