@@ -51,7 +51,7 @@ add_event_handler('loc_end_section_init', 'pshare_section_init');
 /* define page section from url */
 function pshare_section_init()
 {
-  global $tokens, $page, $conf, $template;
+  global $tokens, $page, $conf, $user, $template;
 
   if ($tokens[0] == 'pshare')
   {
@@ -85,10 +85,54 @@ SELECT
 
     $share = $shares[0];
 
+    pshare_log($share['pshare_key_id'], 'visit');
+
     // is the key still valid?
     if (strtotime($share['expire_on']) < strtotime($share['dbnow']))
     {
       die('expired key');
+    }
+
+    // if the user is permitted for this photo, let's redirect to
+    // picture.php (with full details and actions)
+    if (!is_a_guest() and pshare_is_photo_visible($share['image_id']))
+    {
+      // find the first reachable category linked to the photo
+      $query = '
+SELECT category_id
+  FROM '.IMAGE_CATEGORY_TABLE.'
+  WHERE image_id = '.$share['image_id'].'
+;';
+
+      $authorizeds = array_diff(
+        array_from_query($query, 'category_id'),
+        explode(',', calculate_permissions($user['id'], $user['status']))
+        );
+
+      foreach ($authorizeds as $category_id)
+      {
+        $url = make_picture_url(
+          array(
+            'image_id' => $share['image_id'],
+            'category' => get_cat_info($category_id),
+            )
+          );
+
+        if (function_exists('Fotorama_is_replace_picture') and Fotorama_is_replace_picture())
+        {
+          $url.= '&slidestop';
+        }
+
+        redirect($url);
+      }
+      
+      redirect(
+        make_picture_url(
+          array(
+            'image_id' => $share['image_id'],
+            )
+          )
+        );
     }
 
     $query = '
@@ -135,8 +179,6 @@ SELECT *
     
     $template->parse('shared_picture');
     $template->p();
-
-    pshare_log($share['pshare_key_id'], 'visit');
     
     exit();
   }
@@ -375,4 +417,30 @@ function pshare_log($key_id, $type='visit')
     );
 }
 
+function pshare_is_photo_visible($image_id)
+{
+  $query='
+SELECT id
+  FROM '.CATEGORIES_TABLE.'
+    INNER JOIN '.IMAGE_CATEGORY_TABLE.' ON category_id = id
+  WHERE image_id = '.$image_id.'
+'.get_sql_condition_FandF(
+  array(
+      'forbidden_categories' => 'category_id',
+      'forbidden_images' => 'image_id',
+    ),
+  '    AND'
+  ).'
+  LIMIT 1
+;';
+
+  // echo $query;
+  
+  if (pwg_db_num_rows(pwg_query($query)) < 1)
+  {
+    return false;
+  }
+
+  return true;
+}
 ?>
