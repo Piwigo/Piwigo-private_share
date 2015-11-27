@@ -41,7 +41,7 @@
 var oTable = jQuery('#activityTable').dataTable({});
 
 jQuery(document).ready(function() {
-  jQuery(".expire").click(function(e){
+  jQuery(document).on('click', '.expire',  function(e) {
     var $this = jQuery(this);
 
     $this.closest("td").find(".loading").css("visibility", "visible");
