@@ -42,6 +42,12 @@ CREATE TABLE IF NOT EXISTS `'.$prefixeTable.'pshare_log` (
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8
 ;';
     pwg_query($query);
+
+    $result = pwg_query('SHOW COLUMNS FROM `'.GROUPS_TABLE.'` LIKE "pshare_enabled";');
+    if (!pwg_db_num_rows($result))
+    {
+      pwg_query('ALTER TABLE '.GROUPS_TABLE.' ADD pshare_enabled enum(\'true\', \'false\') DEFAULT \'false\';');
+    }
     
     $this->installed = true;
   }
@@ -70,6 +76,10 @@ CREATE TABLE IF NOT EXISTS `'.$prefixeTable.'pshare_log` (
     global $prefixeTable;
 
     pwg_query('DROP TABLE '.$prefixeTable.'pshare_keys;');
+    pwg_query('DROP TABLE '.$prefixeTable.'pshare_log;');
+
+    $query = 'DROP TABLE '.GROUPS_TABLE.' DROP pshare_enabled;';
+    pwg_query($query);
   }
 }
 ?>

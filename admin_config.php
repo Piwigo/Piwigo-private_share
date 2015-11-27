@@ -37,17 +37,17 @@ if (!empty($_POST))
   // first we must reset all groups to false
   $query = '
 UPDATE '.GROUPS_TABLE.'
-  SET pqv_enabled = \'false\'
+  SET pshare_enabled = \'false\'
 ;';
-  // pwg_query($query);
+  pwg_query($query);
 
   // then we set submitted groups to true
   $query = '
 UPDATE '.GROUPS_TABLE.'
-  SET pqv_enabled = \'true\'
+  SET pshare_enabled = \'true\'
   WHERE id IN ('.implode(',', $_POST['groups']).')
 ;';
-  // pwg_query($query);
+  pwg_query($query);
   
   array_push($page['infos'], l10n('Information data registered in database'));
 }
@@ -65,7 +65,7 @@ $group_ids = query2array($query, null, 'id');
 $query = '
 SELECT id
   FROM '.GROUPS_TABLE.'
-  WHERE pqv_enabled = \'true\'
+  WHERE pshare_enabled = \'true\'
 ;';
 $groups_selected = query2array($query, null, 'id');
 

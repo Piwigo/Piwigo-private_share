@@ -187,7 +187,12 @@ SELECT *
 add_event_handler('loc_end_picture', 'pshare_end_picture');
 function pshare_end_picture()
 {
-  global $conf, $template, $picture;
+  global $conf, $template, $picture, $user;
+
+  if (!pshare_is_active())
+  {
+    return;
+  }
   
   $template->set_prefilter('picture', 'pshare_end_picture_prefilter');
   $template->assign(
@@ -242,6 +247,11 @@ function pshare_add_methods($arr)
 function ws_pshare_share_create($params, &$service)
 {
   global $conf, $user;
+
+  if (!pshare_is_active())
+  {
+    return new PwgError(401, "permission denied");
+  }
 
   $query = '
 SELECT *
@@ -434,9 +444,29 @@ SELECT id
   LIMIT 1
 ;';
 
-  // echo $query;
-  
   if (pwg_db_num_rows(pwg_query($query)) < 1)
+  {
+    return false;
+  }
+
+  return true;
+}
+
+function pshare_is_active()
+{
+  global $user;
+
+  $query = '
+SELECT
+    COUNT(*)
+  FROM '.GROUPS_TABLE.'
+    JOIN '.USER_GROUP_TABLE.' ON group_id = id
+  WHERE user_id = '.$user['id'].'
+    AND pshare_enabled = \'true\'
+;';
+  list($counter) = pwg_db_fetch_row(pwg_query($query));
+
+  if ($counter == 0)
   {
     return false;
   }
