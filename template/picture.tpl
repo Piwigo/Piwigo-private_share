@@ -2,8 +2,9 @@
 
 {combine_script id='jquery.colorbox' load='footer' require='jquery' path='themes/default/js/plugins/jquery.colorbox.min.js'}
 {combine_css id='colorbox' path='themes/default/js/plugins/colorbox/style2/colorbox.css'}
+{combine_css path='plugins/private_share/css/style.css'}
 
-<div class="pshare"><a href="#pshare" title="Share" class="pshare-open pshare-icon-share">{'Partager'|translate}</a></div>
+<div class="pshare"><a href="#pshare" title="{'Share'|translate}" class="pshare-open pshare-icon-share">{'Share'|translate}</a></div>
 
 {footer_script require='jquery'}
 // popup
@@ -12,12 +13,16 @@ jQuery('.pshare-open').colorbox({
   href:"#pshare_form"
 });
 
-jQuery('.pshare-close').click(function(e) {
+jQuery(document).on('click', '.pshare-close',  function(e) {
+  jQuery("#pshare_form .formInfo").css('visibility', 'hidden');
+  jQuery("[name=pshare_form]").trigger("reset");
   jQuery('.pshare-open').colorbox.close();
   e.preventDefault();
 });
 
 jQuery('#pshare_form').submit(function(e){
+  jQuery(".formActions .loading").css("visibility", "visible");
+
   jQuery.ajax({
     url: "ws.php?format=json&method=pshare.share.create",
     type:"POST",
@@ -25,14 +30,25 @@ jQuery('#pshare_form').submit(function(e){
     success:function(data) {
       var data = jQuery.parseJSON(data);
       if (data.stat == 'ok') {
-        alert("yeah baby");
+        var html_message = '<span class="success">&#x2714; '+data.result.message+'</span>';
+        html_message+= ' <a href="#" class="pshare-icon-cancel-circled pshare-close">{'Close'|translate}</a>';
+
+        jQuery("#pshare_form .formInfo")
+          .html(html_message)
+          .css('visibility', 'visible')
+          ;
       }
       else {
-        alert(data.message);
+        jQuery("#pshare_form .formInfo")
+          .html('<span class="error">&#x2718; '+data.message+'</span>')
+          .css('visibility', 'visible')
+          ;
       }
+
+      jQuery(".formActions .loading").css("visibility", "hidden");
     },
     error:function(XMLHttpRequest, textStatus, errorThrows) {
-      alert("error while buying photo");
+      alert("error calling Piwigo API");
     }
   });
 
@@ -40,39 +56,9 @@ jQuery('#pshare_form').submit(function(e){
 });
 {/footer_script}
 
-{html_style}
-.pshare {
-  padding: 10px 0 10px 7px;
-}
-
-.pshare a {
-  text-decoration:none;
-}
-
-#pshare_form {
-  width:400px;
-}
-
-#pshare_form table {
-  margin:10px auto;
-}
-
-#pshare_form td {
-  padding:3px;
-}
-
-#pshare_form th {
-  text-align:right;
-  padding-right:5px;
-}
-
-#pshare_form .formActions {
-  text-align:center;
-}
-{/html_style}
-
 <div style="display:none;">
-  <form id="pshare_form" action="{$F_ACTION}" method="post">
+  <form id="pshare_form" name="pshare_form" action="{$F_ACTION}" method="post">
+  <div class="formInfo"><span class="success">&#x2718; oups, problem occured</span> <a href="#pshare-close" class="icon-cancel-circled pshare-close">{'Close'|translate}</a></div>
   <input type="hidden" name="image_id" value="{$PSHARE_IMAGE_ID}">
   <table>
     <tr>
@@ -83,16 +69,19 @@ jQuery('#pshare_form').submit(function(e){
       <th>{'Expires in'|@translate}</th>
       <td>
         <select name="expires_in">
-          <option value="7">1 week</option>
-          <option value="30">1 month</option>
+          <option value="7">{'%d week'|translate:1}</option>
+          <option value="15">{'%d weeks'|translate:2}</option>
+          <option value="30">{'%d month'|translate:1}</option>
+          <option value="90">{'%d months'|translate:3}</option>
         </select>
       </td>
     </tr>
   </table>
 
   <p class="formActions">
-    <input type="submit" value="Send email">
+    <input type="submit" value="{'Send email'|translate}">
     <a href="#pshare-close" class="pshare-close">{'Cancel'|translate}</a>
+    <img class="loading" src="themes/default/images/ajax-loader-small.gif">
   </p>
 
   </form>

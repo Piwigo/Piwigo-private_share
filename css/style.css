@@ -1,0 +1,59 @@
+.pshare {
+  padding: 10px 0 10px 7px;
+}
+
+.pshare a {
+  text-decoration:none !important;
+}
+
+#pshare_form {
+  width:400px;
+}
+
+#pshare_form table {
+  margin:10px auto;
+}
+
+#pshare_form td {
+  padding:3px;
+}
+
+#pshare_form th {
+  text-align:right;
+  padding-right:5px;
+}
+
+#pshare_form .formActions {
+  text-align:center;
+  margin:20px;
+}
+
+#pshare_form .formActions .loading {
+  visibility:hidden;
+}
+
+.formInfo {
+  visibility:hidden;
+  margin:10px 0;
+  text-align:center;
+}
+
+.formInfo .pshare-close {
+  text-decoration:none !important;
+}
+
+.formInfo span {
+  font-weight:bold;
+  padding: 2px 5px;
+  border-radius:5px !important;
+}
+
+.formInfo span.error {
+  color: #F22;
+  background-color: #FFD5DC;
+}
+
+.formInfo span.success {
+  color: #0A0;
+  background-color: #C2F5C2;
+}

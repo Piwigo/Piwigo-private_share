@@ -358,6 +358,10 @@ SELECT *
       'content_format' => 'text/html',
       )
     );
+
+  return array(
+    'message' => l10n('Email sent to %s', $share['sent_to']),
+    );
 }
 
 function ws_pshare_share_expire($params, &$service)
