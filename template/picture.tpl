@@ -13,7 +13,6 @@ jQuery('.pshare-open').colorbox({
 });
 
 jQuery('.pshare-close').click(function(e) {
-  console.log('salut les truffes');
   jQuery('.pshare-open').colorbox.close();
   e.preventDefault();
 });
@@ -29,7 +28,7 @@ jQuery('#pshare_form').submit(function(e){
         alert("yeah baby");
       }
       else {
-        alert("error on buying photo");
+        alert(data.message);
       }
     },
     error:function(XMLHttpRequest, textStatus, errorThrows) {

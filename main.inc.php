@@ -24,6 +24,8 @@ add_event_handler('init', 'pshare_init');
 function pshare_init()
 {
   global $conf;
+
+  load_language('plugin.lang', PSHARE_PATH);
 }
 
 add_event_handler('get_admin_plugin_menu_links', 'pshare_admin_menu');
@@ -267,9 +269,17 @@ SELECT *
 
   $image = $images[0];
 
-  // TODO check image is authorized to the user posting, maybe by using a token that make it sure the user was on the page of the photo
+  if (!pshare_is_photo_visible($params['image_id']))
+  {
+    return new PwgError(401, "permissions denied");
+  }
+  
+  if (!email_check_format($params['email']))
+  {
+    return new PwgError(WS_ERR_INVALID_PARAM, l10n('Invalid email address'));
+  }
+  
   // TODO check the expires_in is in the defined list
-  // TODO check the email is valid
 
   $query = '
 SELECT
