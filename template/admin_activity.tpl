@@ -38,7 +38,9 @@
 <h2>{'Activity'|@translate} - Private Share</h2>
 
 {footer_script}
-var oTable = jQuery('#activityTable').dataTable({});
+var oTable = jQuery('#activityTable').dataTable({
+  aaSorting: [[0, 'desc' ]]
+});
 
 jQuery(document).ready(function() {
   jQuery(document).on('click', '.expire',  function(e) {
