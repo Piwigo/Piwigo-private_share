@@ -171,10 +171,16 @@ SELECT *
     }
 
     $template->set_filename('shared_picture', realpath(PSHARE_PATH.'template/shared_picture.tpl'));
+
+    $derivative = new DerivativeImage(ImageStdParams::get_by_type(IMG_MEDIUM), $src_image);
+
+    $derivative_size = $derivative->get_size();
     
     $template->assign(
       array(
-        'SRC' => DerivativeImage::url(IMG_MEDIUM, $src_image),
+        'SRC' => $derivative->get_url(),
+        'IMG_WIDTH' => $derivative_size[0],
+        'IMG_HEIGHT' => $derivative_size[1],
         'DOWNLOAD_URL' => duplicate_index_url().'/'.$page['pshare_key'].'/download',
         )
       );
