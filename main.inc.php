@@ -203,9 +203,11 @@ function pshare_end_picture()
       )
     );
 
-  $template->set_filename('pshare_picture', realpath(PSHARE_PATH.'template/picture.tpl'));
-  
-  $template->assign_var_from_handle('PSHARE_CONTENT', 'pshare_picture');
+  if (!isset($conf['use_pshare_picture_template']) or $conf['use_pshare_picture_template'])
+  {
+    $template->set_filename('pshare_picture', realpath(PSHARE_PATH.'template/picture.tpl'));
+    $template->assign_var_from_handle('PSHARE_CONTENT', 'pshare_picture');
+  }
 }
 
 function pshare_end_picture_prefilter($content, &$smarty)
