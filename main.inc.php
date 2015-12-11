@@ -148,7 +148,36 @@ SELECT *
 
     if (isset($tokens[2]) && 'download' == $tokens[2])
     {
-      $file = $image['path'];
+      $format_id = null;
+
+      if (isset($tokens[3]) && preg_match('/^f(\d+)$/', $tokens[3], $matches))
+      {
+        $format_id = $matches[1];
+
+        $query = '
+SELECT
+    *
+  FROM '.IMAGE_FORMAT_TABLE.'
+  WHERE format_id = '.$format_id.'
+    AND image_id = '.$image['id'].'
+;';
+        $formats = query2array($query);
+
+        if (count($formats) == 0)
+        {
+          do_error(400, 'Invalid request - format');
+        }
+
+        $format = $formats[0];
+
+        $file = original_to_format(get_element_path($image), $format['ext']);
+        $image['file'] = get_filename_wo_extension($image['file']).'.'.$format['ext'];
+      }
+      else
+      {
+        $file = $image['path'];
+      }
+      
       $gmt_mtime = gmdate('D, d M Y H:i:s', filemtime($file)).' GMT';
 
       $http_headers = array(
@@ -165,7 +194,7 @@ SELECT *
       
       readfile($file);
 
-      pshare_log($share['pshare_key_id'], 'download');
+      pshare_log($share['pshare_key_id'], 'download', $format_id);
         
       exit();
     }
@@ -176,15 +205,39 @@ SELECT *
 
     $derivative_size = $derivative->get_size();
     
+    // a random string to avoid browser cache
+    $rand = '&amp;download='.substr(md5(time()), 0, 6);
+    
     $template->assign(
       array(
         'SRC' => $derivative->get_url(),
         'IMG_WIDTH' => $derivative_size[0],
         'IMG_HEIGHT' => $derivative_size[1],
-        'DOWNLOAD_URL' => duplicate_index_url().'/'.$page['pshare_key'].'/download',
+        'DOWNLOAD_URL' => duplicate_index_url().'/'.$page['pshare_key'].'/download'.$rand,
         )
       );
-    
+
+    // formats
+    $query = '
+SELECT *
+  FROM '.IMAGE_FORMAT_TABLE.'
+  WHERE image_id = '.$share['image_id'].'
+;';
+    $formats = query2array($query);
+  
+    if (!empty($formats))
+    {
+      foreach ($formats as &$format)
+      {
+        $format['download_url'] = duplicate_index_url().'/'.$page['pshare_key'].'/download';
+        $format['download_url'].= '/f'.$format['format_id'].$rand;
+      
+        $format['filesize'] = sprintf('%.1fMB', $format['filesize']/1024);
+      }
+    }
+
+    $template->assign('formats', $formats);
+  
     $template->parse('shared_picture');
     $template->p();
     
@@ -431,7 +484,7 @@ SELECT
 
 }
 
-function pshare_log($key_id, $type='visit')
+function pshare_log($key_id, $type='visit', $format_id=null)
 {
   global $user;
   
@@ -445,6 +498,7 @@ function pshare_log($key_id, $type='visit')
       'type' => $type,
       'ip_address' => $_SERVER['REMOTE_ADDR'],
       'user_id' => $user['id'],
+      'format_id' => empty($format_id) ? '' : $format_id,
       )
     );
 }

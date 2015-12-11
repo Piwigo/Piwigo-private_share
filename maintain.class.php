@@ -38,6 +38,7 @@ CREATE TABLE IF NOT EXISTS `'.$prefixeTable.'pshare_log` (
   `type` enum(\'download\',\'visit\') NOT NULL DEFAULT \'visit\',
   `ip_address` varchar(15) NOT NULL DEFAULT \'\',
   `user_id` mediumint(8) unsigned NOT NULL,
+  `format_id` int(11) unsigned default NULL,
   PRIMARY KEY (`pshare_log_id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8
 ;';
@@ -47,6 +48,12 @@ CREATE TABLE IF NOT EXISTS `'.$prefixeTable.'pshare_log` (
     if (!pwg_db_num_rows($result))
     {
       pwg_query('ALTER TABLE '.GROUPS_TABLE.' ADD pshare_enabled enum(\'true\', \'false\') DEFAULT \'false\';');
+    }
+
+    $result = pwg_query('SHOW COLUMNS FROM `'.$prefixeTable.'pshare_log` LIKE "format_id";');
+    if (!pwg_db_num_rows($result))
+    {
+      pwg_query('ALTER TABLE '.$prefixeTable.'pshare_log ADD format_id int(11) DEFAULT NULL;');
     }
     
     $this->installed = true;

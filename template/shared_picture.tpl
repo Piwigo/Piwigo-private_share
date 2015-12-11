@@ -37,12 +37,21 @@ body {
 .downloadLinks a:hover {
   color:white;
 }
+
+.downloadformatDetails {
+  display:none;
+}
 </style>
 </head>
 <body>
 <div class="image">
 <img src="{$SRC}">
-<div class="downloadLinks"><a class="pshare-icon-down-circled2" href="{$DOWNLOAD_URL}">download</a></div>
+<div class="downloadLinks">
+  <a class="pshare-icon-down-circled2" href="{$DOWNLOAD_URL}">{'Original'|@translate}</a>
+{foreach from=$formats item=format}
+  <a class="pshare-icon-down-circled2" href="{$format.download_url}">{$format.ext|upper}<span class="downloadformatDetails"> ({$format.filesize})</span></a>
+{/foreach}
+</div>
 </div>
 </body>
 </html>
