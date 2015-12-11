@@ -218,25 +218,28 @@ SELECT
       );
 
     // formats
-    $query = '
+    if (defined('IMAGE_FORMAT_TABLE'))
+    {
+      $query = '
 SELECT *
   FROM '.IMAGE_FORMAT_TABLE.'
   WHERE image_id = '.$share['image_id'].'
 ;';
-    $formats = query2array($query);
+      $formats = query2array($query);
   
-    if (!empty($formats))
-    {
-      foreach ($formats as &$format)
+      if (!empty($formats))
       {
-        $format['download_url'] = duplicate_index_url().'/'.$page['pshare_key'].'/download';
-        $format['download_url'].= '/f'.$format['format_id'].$rand;
-      
+        foreach ($formats as &$format)
+        {
+          $format['download_url'] = duplicate_index_url().'/'.$page['pshare_key'].'/download';
+          $format['download_url'].= '/f'.$format['format_id'].$rand;
+          
         $format['filesize'] = sprintf('%.1fMB', $format['filesize']/1024);
+        }
       }
-    }
 
-    $template->assign('formats', $formats);
+      $template->assign('formats', $formats);
+    }
   
     $template->parse('shared_picture');
     $template->p();

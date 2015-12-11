@@ -48,9 +48,11 @@ body {
 <img src="{$SRC}">
 <div class="downloadLinks">
   <a class="pshare-icon-down-circled2" href="{$DOWNLOAD_URL}">{'Original'|@translate}</a>
+{if isset($formats)}
 {foreach from=$formats item=format}
   <a class="pshare-icon-down-circled2" href="{$format.download_url}">{$format.ext|upper}<span class="downloadformatDetails"> ({$format.filesize})</span></a>
 {/foreach}
+{/if}
 </div>
 </div>
 </body>
