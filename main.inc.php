@@ -407,7 +407,7 @@ SELECT *
   $content = '<p style="text-align:center">';
   $content.= l10n('%s has shared a photo with you', $user['username']);
   $content.= '<br><br><a href="'.$link.'"><img src="'.$thumb_url.'"></a>';
-  $content.= '<br><br><a href="'.$link.'">'.l10n('clic to view').'</a>';
+  $content.= '<br><br><a href="'.$link.'">'.l10n('click to view').'</a>';
   $content.= '</p>';
 
   $subject = l10n('Photo shared');
