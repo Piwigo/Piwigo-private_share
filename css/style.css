@@ -1,9 +1,5 @@
-.pshare {
-  padding: 10px 0 10px 7px;
-}
-
-.pshare a {
-  text-decoration:none !important;
+.pwg-button.pshare-open {
+  font-size: 17px;
 }
 
 #pshare_form {
