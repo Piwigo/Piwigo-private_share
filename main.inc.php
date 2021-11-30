@@ -6,6 +6,7 @@ Description: Share a private photo, with a key instead of authentication
 Plugin URI: http://piwigo.org/ext/extension_view.php?eid=
 Author: plg
 Author URI: http://le-gall.net/pierrick
+Has Settings: true
 */
 
 global $conf, $prefixeTable;
@@ -272,7 +273,7 @@ function pshare_end_picture()
   }
 }
 
-function pshare_end_picture_prefilter($content, &$smarty)
+function pshare_end_picture_prefilter($content)
 {
   $search = '<dl id="standard"';
   
