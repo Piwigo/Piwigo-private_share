@@ -10,6 +10,6 @@ $lang['Close'] = 'Închide';
 $lang['Expires in'] = 'Expira in';
 $lang['Invalid email address'] = 'Adresa de email invalida';
 $lang['Send email'] = 'Trimite email';
-$lang['Share'] = 'Distribuie';
+$lang['Share'] = 'Partajați';
 $lang['a list of albums'] = 'o listă de albume';
 $lang['all albums'] = 'toate albumele';
