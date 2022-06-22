@@ -27,6 +27,10 @@ function pshare_init()
   global $conf;
 
   load_language('plugin.lang', PSHARE_PATH);
+
+  global $template; 
+
+  $template->set_template_dir(PSHARE_PATH.'template/');
 }
 
 add_event_handler('get_admin_plugin_menu_links', 'pshare_admin_menu');
@@ -200,7 +204,7 @@ SELECT
       exit();
     }
 
-    $template->set_filename('shared_picture', realpath(PSHARE_PATH.'template/shared_picture.tpl'));
+    $template->set_filename('shared_picture', 'shared_picture.tpl');
 
     $derivative = new DerivativeImage(ImageStdParams::get_by_type(IMG_MEDIUM), $src_image);
 
@@ -249,6 +253,16 @@ SELECT *
   }
 }
 
+add_event_handler('loc_begin_picture', 'pshare_begin_picture');
+function pshare_begin_picture()
+{
+  global $template;
+
+  $template->set_filename('pshare_button_share', 'button_private_share_picture.tpl');
+  $template->add_picture_button($template->parse('pshare_button_share', true), 50);
+}
+
+
 add_event_handler('loc_end_picture', 'pshare_end_picture');
 function pshare_end_picture()
 {
@@ -268,8 +282,8 @@ function pshare_end_picture()
 
   if (!isset($conf['use_pshare_picture_template']) or $conf['use_pshare_picture_template'])
   {
-    $template->set_filename('pshare_picture', realpath(PSHARE_PATH.'template/picture.tpl'));
-    $template->assign_var_from_handle('PSHARE_CONTENT', 'pshare_picture');
+    $template->set_filename('pshare_picture', 'private_share_picture.tpl');
+    $template->parse('pshare_picture');
   }
 }
 
