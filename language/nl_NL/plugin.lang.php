@@ -10,6 +10,6 @@ $lang['a list of albums'] = 'Een lijst van albums';
 $lang['Share'] = 'Deel';
 $lang['Send email'] = 'Mail van de zender';
 $lang['Invalid email address'] = 'Geen geldig email-adres';
-$lang['Expires in'] = 'Verloopt in';
+$lang['Expires in'] = 'Verloopt over';
 $lang['Close'] = 'Sluit';
 $lang['Apply to albums'] = 'Toepassen op albums';
