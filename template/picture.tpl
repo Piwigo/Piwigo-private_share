@@ -4,7 +4,9 @@
 {combine_css id='colorbox' path='themes/default/js/plugins/colorbox/style2/colorbox.css'}
 {combine_css path='plugins/private_share/css/style.css'}
 
-<div class="pshare"><a href="#pshare" title="{'Share'|translate}" class="pshare-open pshare-icon-share">{'Share'|translate}</a></div>
+<a href="#pshare" title="{'Share'|translate}" id="pshare_icon" class=" pwg-state-default pwg-button nav-link">
+<span class="pwg-icon pshare-open pshare-icon-share"></span>
+</a>
 
 {footer_script require='jquery'}
 // popup

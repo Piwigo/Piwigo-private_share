@@ -259,7 +259,6 @@ function pshare_end_picture()
     return;
   }
   
-  $template->set_prefilter('picture', 'pshare_end_picture_prefilter');
   $template->assign(
     array(
       'PSHARE_IMAGE_ID' => $picture['current']['id'],
@@ -269,19 +268,12 @@ function pshare_end_picture()
   if (!isset($conf['use_pshare_picture_template']) or $conf['use_pshare_picture_template'])
   {
     $template->set_filename('pshare_picture', realpath(PSHARE_PATH.'template/picture.tpl'));
-    $template->assign_var_from_handle('PSHARE_CONTENT', 'pshare_picture');
+    $PSHARE_CONTENT = $template->parse('pshare_picture', true);
+    $template->add_picture_button($PSHARE_CONTENT, 50);
   }
 }
 
-function pshare_end_picture_prefilter($content)
-{
-  $search = '<dl id="standard"';
-  
-  $replace = '{$PSHARE_CONTENT}'.$search;
-  
-  $content = str_replace($search, $replace, $content);
-  return $content;
-}
+
 
 add_event_handler('ws_add_methods', 'pshare_add_methods');
 function pshare_add_methods($arr)
