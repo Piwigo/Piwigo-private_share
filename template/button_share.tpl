@@ -26,8 +26,6 @@ var str_private_share_error = '{'Your email could not be sent'|translate|escape:
 
 {/footer_script}
 
-{combine_script id='share_form' require='jquery' load='footer' path=$PSHARE_PATH|cat:'template/js/collectionMail.js'}
-
 {combine_script id='jquery.confirm' load='footer' require='jquery' path='themes/default/js/plugins/jquery-confirm.min.js'}
 {combine_css path="themes/default/js/plugins/jquery-confirm.min.css"}
 {combine_script id='jquery.colorbox' load='footer' require='jquery' path='themes/default/js/plugins/jquery.colorbox.min.js'}
