@@ -262,15 +262,19 @@ function pshare_end_picture()
   $template->assign(
     array(
       'PSHARE_IMAGE_ID' => $picture['current']['id'],
+      'PSHARE_PATH' => PSHARE_PATH,
       )
     );
 
   if (!isset($conf['use_pshare_picture_template']) or $conf['use_pshare_picture_template'])
   {
-    $template->set_filename('pshare_picture', realpath(PSHARE_PATH.'template/picture.tpl'));
-    $PSHARE_CONTENT = $template->parse('pshare_picture', true);
-    $template->add_picture_button($PSHARE_CONTENT, 50);
-  }
+    $template->set_filename('pshare_form', realpath(PSHARE_PATH.'template/share_form.tpl'));
+    $template->assign_var_from_handle('PSHARE_FORM', 'pshare_form');
+  
+    $template->set_filename('pshare_button', realpath(PSHARE_PATH.'template/button_share.tpl'));
+    $button = $template->parse('pshare_button', true);
+    $template->add_picture_button($button, 50);
+  }  
 }
 
 
@@ -400,7 +404,7 @@ SELECT *
   $content = '<p style="text-align:center">';
   $content.= l10n('%s has shared a photo with you', $user['username']);
   $content.= '<br><br><a href="'.$link.'"><img src="'.$thumb_url.'"></a>';
-  $content.= '<br><br><a href="'.$link.'">'.l10n('clic to view').'</a>';
+  $content.= '<br><br><a href="'.$link.'">'.l10n('Click here to see the picture').'</a>';
   $content.= '</p>';
 
   $subject = l10n('Photo shared');
