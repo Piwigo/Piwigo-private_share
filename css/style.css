@@ -6,8 +6,26 @@
   text-decoration:none !important;
 }
 
-#pshare_form {
-  width:400px;
+#pshare_form > .pshare_input_group {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  align-items: baseline;
+  text-align:left;
+}
+
+#pshare_form  input, #pshare_form select {
+  border: rgb(240, 150, 00) 1px solid;
+  background: none;
+  padding: 5px;
+  border-radius: 5px;
+  color: #111;
+}
+
+#pshare_form  input, #pshare_form select, #pshare_form label {
+  width:100%;
+  box-sizing: border-box;
 }
 
 #pshare_form table {
@@ -56,4 +74,71 @@
 .formInfo span.success {
   color: #0A0;
   background-color: #C2F5C2;
+}
+
+.pwg-button i.pshare-icon-share{
+  font-size:16px!important;
+}
+
+/* Jconfirm popin */
+
+#pshare_form > .pshare_input_group {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  align-items: baseline;;
+}
+
+
+/* Jconfirm styling */
+
+.jconfirm-type-uc, .jconfirm-type-uc-dark {
+  border-top: solid 7px rgb(240, 150, 00);
+}
+
+.jconfirm-type-uc .jconfirm-icon-c, .jconfirm-type-uc-dark .jconfirm-icon-c {
+  color: rgb(240, 150, 00) !important;
+}
+
+.jconfirm-type-uc button.btn-uc, .jconfirm-type-uc-dark button.btn-uc {
+  background-color: rgb(240, 150, 00);
+  color: white;
+}
+
+.jconfirm-type-uc button.btn-uc:hover, .jconfirm-type-uc-dark button.btn-uc:hover {
+  background-color: rgb(209, 140, 0);
+}
+
+.jconfirm-type-uc-dark {
+  background-color: #111 !important;
+}
+
+.jconfirm-type-uc-dark .jconfirm-title {
+  color: white !important;
+}
+
+.jconfirm-type-uc-dark .btn-default {
+  color: white !important;
+  background: #222 !important;
+}
+
+.jconfirm-type-uc-dark .btn-default:hover {
+  background: #181818 !important;
+}
+
+.jconfirm-type-uc-dark input, .jconfirm-type-uc-dark textarea {
+  color: white !important;
+}
+
+.jconfirm-type-uc-dark label {
+  color: white;
+}
+
+.jconfirm-type-uc-dark .shares_list {
+  color: white;
+}
+
+.jconfirm-type-uc-dark .uc_form a {
+  color: white;
 }
