@@ -272,9 +272,12 @@ function pshare_end_picture()
     $template->assign_var_from_handle('PSHARE_FORM', 'pshare_form');
   
     $template->set_filename('pshare_button', realpath(PSHARE_PATH.'template/button_share.tpl'));
+
+    trigger_notify('pshare_end_picture_trigger');
+
     $button = $template->parse('pshare_button', true);
     $template->add_picture_button($button, 50);
-  }  
+  }
 }
 
 
