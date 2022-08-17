@@ -3,11 +3,11 @@ const jconfirmConfigPshare = {
   theme: 'modern',
   backgroundDismiss: true,
   smoothContent: true,
-  type: getDarkOrLigthThemeBdwn(),
+  type: getDarkOrLigthThemePshare(),
 }
 
  // credit to https://awik.io/determine-color-bright-dark-using-javascript/
-function getDarkOrLigthThemeBdwn() {
+function getDarkOrLigthThemePshare() {
   color = jQuery('body').css('background-color');
 
   var r, g, b, hsp;
