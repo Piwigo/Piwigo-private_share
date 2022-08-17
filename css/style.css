@@ -127,8 +127,16 @@
   background: #181818 !important;
 }
 
-.jconfirm-type-uc-dark input, .jconfirm-type-uc-dark textarea {
+.jconfirm-type-uc input, .jconfirm-type-uc textarea, .jconfirm-type-uc select{
+  color:black;
+}
+
+.jconfirm-type-uc-dark input, .jconfirm-type-uc-dark textarea, .jconfirm-type-uc-dark select {
   color: white !important;
+}
+
+.jconfirm-type-uc-dark  #pshare_form input, .jconfirm-type-uc-dark  #pshare_form select{
+  background-color:#111;
 }
 
 .jconfirm-type-uc-dark label {
