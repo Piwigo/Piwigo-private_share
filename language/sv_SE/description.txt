@@ -1,0 +1,1 @@
+Dela ett privat foto med en nyckel istället för autentisering
