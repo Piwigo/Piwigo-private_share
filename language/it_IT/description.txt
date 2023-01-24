@@ -1,0 +1,1 @@
+Condividi una fotografia privata mediante una chiave anziché attraverso l'autenticazione.
