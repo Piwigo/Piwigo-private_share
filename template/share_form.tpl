@@ -1,5 +1,4 @@
-<form id="pshare_form" action="{$F_ACTION}" method="post">
-  {include file='infos_errors.tpl' errors=$share.errors infos=$share.infos}
+<form id="pshare_form" method="post">
 
   <input type="hidden" name="image_id" id="image_id" value="{$PSHARE_IMAGE_ID}">
 

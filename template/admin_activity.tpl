@@ -98,7 +98,7 @@ jQuery(document).ready(function() {
 <td>{$activity.visit}</td>
 <td>{$activity.download}</td>
 <td class="activityActions">
-  {if $activity.expired}
+  {if isset($activity.expired) and $activity.expired}
   {'expired'|translate}
   {else}
   <a href="#expire" class="icon-cancel-circled expire" data-id="{$activity.pshare_key_id}">expire</a> <img class="loading" src="themes/default/images/ajax-loader-small.gif">

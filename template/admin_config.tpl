@@ -24,7 +24,7 @@ jQuery(document).ready(function() {
   <h2>{'Configuration'|@translate} - Private Share</h2>
 </div>
 
-<form method="post" action="{$F_ACTION}">
+<form method="post">
 
   <p>
 {if count($groups) > 0}
